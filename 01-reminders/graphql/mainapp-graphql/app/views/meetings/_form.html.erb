@@ -1,0 +1,34 @@
+<%= form_with(model: meeting) do |form| %>
+  <% if meeting.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(meeting.errors.count, "error") %> prohibited this meeting from being saved:</h2>
+
+      <ul>
+        <% meeting.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :title %>
+    <%= form.text_field :title %>
+  </div>
+
+  <div class="field">
+    <%= form.label :starts_at %>
+    <%= form.datetime_select :starts_at %>
+  </div>
+
+  <div class="field">
+    <%= form.label :participants %>
+    <%= form.collection_select(:participant_ids, @available, :id, :name,
+    { include_blank: false, include_hidden: false, selected: @participants.ids }, { multiple: true }) %>
+  </div>
+
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  contact_info: one
+  meeting: one
+
+two:
+  contact_info: two
+  meeting: two
