@@ -8,9 +8,8 @@ const agenda = new Agenda({ db: { address: mongoConnectionString } });
 agenda.define("send reminder", async (job) => {
   try {
     const { id } = job.attrs.data;
-    const res = await axios.get(`http://web:3000/meetings/${id}.json`);
-    console.log(`Sending emails to: `);
-    console.log(res.data.participants);
+    console.log(`Meeting ${id} is about to start - sending reminders`);
+    // TODO: Connect via REST API to Rails App and get the list of parcitipants
   } catch (err) {
     console.log('error');
     console.log(err);
