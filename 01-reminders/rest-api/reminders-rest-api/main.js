@@ -1,15 +1,16 @@
 var amqp = require('amqplib/callback_api');
 const axios = require('axios').default;
 const { Agenda } = require("agenda");
-const mongoConnectionString = "mongodb://127.0.0.1/agenda";
+const mongoConnectionString = "mongodb://mongo/agenda";
 
 const agenda = new Agenda({ db: { address: mongoConnectionString } });
 
 agenda.define("send reminder", async (job) => {
   try {
     const { id } = job.attrs.data;
-    const res = await axios.get(`http://localhost:3000/meetings/${id}.json`);
-    console.log(`Seinding emails to: `);
+    const res = await axios.get(`http://web:3000/meetings/${id}.json`);
+    console.log(`Sending emails to: `);
+    console.log(res.data.participants);
   } catch (err) {
     console.log('error');
     console.log(err);
@@ -18,9 +19,16 @@ agenda.define("send reminder", async (job) => {
 
 agenda.start();
 
-amqp.connect('amqp://localhost', function(error0, connection) {
+amqp.connect('amqp://rabbitmq', function(error0, connection) {
   if (error0) {
     throw error0;
+  }
+
+  function closeOnErr(err) {
+    if (!err) return false;
+    console.error("[AMQP] error", err);
+    connection.close();
+    return true;
   }
 
   connection.createChannel(function(error1, channel) {
@@ -30,14 +38,18 @@ amqp.connect('amqp://localhost', function(error0, connection) {
     var queue = 'meetings';
 
     console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-    channel.consume(queue, async function(msg) {
-      console.log(" [x] Received %s", msg.content.toString());
-      const data = JSON.parse(msg.content);
-      const numRemoved = await agenda.cancel({ data: { id: data.id }});
-      console.log(`canceled previous ${numRemoved} jobs`);
-      agenda.schedule(data.starts_at, "send reminder", {
-        id: data.id
-      });
-    }, { noAck: true })
+    channel.assertQueue(queue, { durable: true }, function(err, _ok) {
+      if (closeOnErr(err)) return;
+
+      channel.consume(queue, async function(msg) {
+        console.log(" [x] Received %s", msg.content.toString());
+        const data = JSON.parse(msg.content);
+        const numRemoved = await agenda.cancel({ data: { id: data.id }});
+        console.log(`canceled previous ${numRemoved} jobs`);
+        agenda.schedule(data.starts_at, "send reminder", {
+          id: data.id
+        });
+      }, { noAck: true })
+    })
   })
 });

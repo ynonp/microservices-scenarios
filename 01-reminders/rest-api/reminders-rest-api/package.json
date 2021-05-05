@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
     "agenda": "^4.1.2",
     "agendash": "^2.1.1",
     "amqplib": "^0.7.1",

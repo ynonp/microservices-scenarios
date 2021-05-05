@@ -9,7 +9,7 @@ class MessagingService
     connect if @bunny.status == :not_connected
 
     @channel ||= bunny.channel
-    @meetings_queue ||= @channel.queue('meetings')
+    @meetings_queue ||= @channel.queue('meetings', durable: true)
   end
 
   def connect

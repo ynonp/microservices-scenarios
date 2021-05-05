@@ -15,9 +15,3 @@ we need to create a reminder service that will send email or SMS reminders to ou
 
 For this tutorial we'll implement the new service in Node.JS using MongoDB and communicate with the main app using 3 different methods to see the difference between them.
 
-## Implementation 1 - Using a REST API
-
-## Implementation 2 - Using GraphQL API
-
-## Implementation 3 - Connecting to the user's database
-

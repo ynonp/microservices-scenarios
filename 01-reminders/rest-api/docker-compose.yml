@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo
+    # If you want to connect from your machine, you'll need to expose the ports by uncommenting the following lines:
+    # ports:
+    #  - 27017:27017
+
+  rabbitmq:
+    image: rabbitmq
+    # If you want to connect from your machine, you'll need to expose the ports by uncommenting the following lines:
+    # ports:
+    #  - 5672:5672
+
+  web:
+    build: ./mainapp-rest-api
+    command: ["/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
+    volumes:
+      - ./mainapp-rest-api:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+
+  reminders:
+    build: ./reminders-rest-api
+    command: ["/usr/bin/wait-for-it.sh", "mongo:27017", "--", "/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "nodemon", "main.js"]
+    volumes:
+      - ./reminders-rest-api:/myapp
+    depends_on:
+      - web
+      - rabbitmq
+      - mongo
