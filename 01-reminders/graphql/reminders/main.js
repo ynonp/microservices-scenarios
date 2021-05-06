@@ -11,21 +11,7 @@ agenda.define("send reminder", async (job) => {
   try {
     const { id } = job.attrs.data;
     console.log(`Meeting ${id} is about to start - sending reminders`);
-    const query = gql`
-      {
-        meeting(id: ${id}) {
-          title
-          participants {
-            email
-          }
-        }
-      }
-    `
-    request('http://web:3000/graphql', query).then((data) => {
-      console.log(data.meeting.participants);
-    })
-
-    // TODO: Connect via REST API to Rails App and get the list of parcitipants
+    // TODO: Connect via GraphQL API to Rails App and get the list of parcitipants
   } catch (err) {
     console.log('error');
     console.log(err);

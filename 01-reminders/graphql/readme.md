@@ -109,6 +109,122 @@ Try to list as many advantages and disadvantages as you can find. Here are some 
 
 
 ## Adding A Rails API Endpoint
+GraphQL is already installed in the starter but is not configured. A GraphQL API lets the client decide what data it needs according to a schema of pre-defined types. In order to open a GraphQL endpoint on our server we first need to define types for relevant data, and then expose those types from a GraphQL root.
+
+A type in GraphQL corresponds to a model in Rails: It has "fields" to describe the data in the DB table, and also supports methods for callbacks and more complex logic.
+
+In our application we have two types: A `MeetingType` and a `ContactInfoType`.
+
+Create a new file named `app/graphql/types/meeting_type.rb` with the following content:
+
+```
+# app/graphql/types/meeting_type.rb
+module Types
+  class MeetingType < Types::BaseObject
+    description 'A meeting'
+    field :id, ID, null: false
+    field :title, String, null: false
+    field :starts_at, GraphQL::Types::ISO8601DateTime, null: false
+    field :participants, [Types::ContactInfoType], null: true
+  end
+end
+```
+
+Observe how the fields match the columns in the database.
+
+Now create a second file named `app/graphql/types/contact_info_type.rb` with the following content:
+
+```
+module Types
+  class ContactInfoType < Types::BaseObject
+    description 'A person in a meeting'
+    field :id, ID, null: false
+    field :email, String, null: false
+    field :phone, String, null: false
+  end
+end
+```
+
+Although in the database we have a connection table and a connection model `ContactInfoMeeting`, this is not needed in GraphQL schema. The schema only cares about the data a user can request.
+
+After we have both types in place we need to declare an API endpoint. The endpoint is the "starting point" of a query. In our case a client starts the query with a meeting id, and they would usually want to get some data on the meetings and its participants.
+
+Add the following code to the class `QueryType` in file `app/graphql/types/query_type.rb`:
+
+```
+    field :meeting, MeetingType, null: false do
+      description 'Find a meeting by ID'
+      argument :id, ID, required: true
+    end
+
+    def meeting(id:)
+      Meeting.find(id)
+    end
+```
+
+By declaring a field in class QueryType we allow a client to request data from this field. Within the block I define an argument :id, and the method `meeting(:id)` will be called to actually get the object.
+
+Pay attention to this field/method relationship: Actually in GraphQL each field can have a method that will calculate its value. In those methods, the special variable `object` refers to the object that "has" those fields.
+
+Finally observe the file `config/routes.rb` in the starter:
+
+```
+Rails.application.routes.draw do
+  post "/graphql", to: "graphql#execute"
+  root to: 'meetings#index'
+  resources :meetings
+  resources :contact_infos
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+end
+```
+
+The first route tells Rails to send each GraphQL query to the GraphqlController's execute method. Head over to the file `app/controllers/graphql_controller.rb` to check its implementation.
+
+## Checking the GraphQL Schema
+Our graphql schema is now ready but before we move on to modify Node.JS micro service let's verify that it works.
+
+Start the Rails console by typing (in `mainapp` folder):
+
+```
+$ ./bin/rails c
+```
+
+In the console run the following code:
+
+```
+query = "
+ {
+   meeting(id: 1) {
+    id
+    title
+    participants { email }
+  }
+}"
+
+MainappSchema.execute(query)
+```
+
+And if all goes well you should see the meeting's data for meeting with ID = 1
 
 ## Connecting from Node.JS to Rails to get the data
+Now let's continue to node.js micro service and allow it to query the main app to get the actual meeting's participants.
 
+Add the following code to the job description function (after the TODO comment):
+
+```
+    const query = gql`
+      {
+        meeting(id: ${id}) {
+          title
+          participants {
+            email
+          }
+        }
+      }
+    `
+    request('http://web:3000/graphql', query).then((data) => {
+      console.log(data.meeting.participants);
+    })
+```
+
+Having a GraphQL endpoint on the main app means our client decides what data it needs and can structure the query any way it wants.
