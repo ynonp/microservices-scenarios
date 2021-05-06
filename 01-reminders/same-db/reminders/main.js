@@ -1,0 +1,56 @@
+var amqp = require('amqplib/callback_api');
+const axios = require('axios').default;
+const { Agenda } = require("agenda");
+const mongoConnectionString = "mongodb://mongo/agenda";
+
+const agenda = new Agenda({ db: { address: mongoConnectionString } });
+
+// TODO connect to Rails PostgreSQL's DB
+
+agenda.define("send reminder", async (job) => {
+  try {
+    const { id } = job.attrs.data;
+    console.log(`Meeting ${id} is about to start - sending reminders`);
+    // TODO: Use knex to query the main app's database for the emails
+  } catch (err) {
+    console.log('error');
+    console.log(err);
+  }
+});
+
+agenda.start();
+
+amqp.connect('amqp://rabbitmq', function(error0, connection) {
+  if (error0) {
+    throw error0;
+  }
+
+  function closeOnErr(err) {
+    if (!err) return false;
+    console.error("[AMQP] error", err);
+    connection.close();
+    return true;
+  }
+
+  connection.createChannel(function(error1, channel) {
+    if (error1) {
+      throw error1;
+    }
+    var queue = 'meetings';
+
+    console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+    channel.assertQueue(queue, { durable: true }, function(err, _ok) {
+      if (closeOnErr(err)) return;
+
+      channel.consume(queue, async function(msg) {
+        console.log(" [x] Received %s", msg.content.toString());
+        const data = JSON.parse(msg.content);
+        const numRemoved = await agenda.cancel({ data: { id: data.id }});
+        console.log(`canceled previous ${numRemoved} jobs`);
+        agenda.schedule(data.starts_at, "send reminder", {
+          id: data.id
+        });
+      }, { noAck: true })
+    })
+  })
+});

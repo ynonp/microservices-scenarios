@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  mongo:
+    image: mongo
+    # If you want to connect from your machine, you'll need to expose the ports by uncommenting the following lines:
+    # ports:
+    #  - 27017:27017
+
+  rabbitmq:
+    image: rabbitmq
+    # If you want to connect from your machine, you'll need to expose the ports by uncommenting the following lines:
+    # ports:
+    #  - 5672:5672
+
+  web:
+    build: ./mainapp
+    command: ["/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
+    volumes:
+      - ./mainapp:/myapp
+    environment:
+      - MAINAPP_DB_NAME=postgres
+      - MAINAPP_DB_USER=postgres
+      - MAINAPP_DB_PASS=postgres
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+
+
+  reminders:
+    build: ./reminders
+    command: ["/usr/bin/wait-for-it.sh", "mongo:27017", "--", "/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "nodemon", "main.js"]
+    environment:
+      - MAINAPP_DB_NAME=postgres
+      - MAINAPP_DB_USER=postgres
+      - MAINAPP_DB_PASS=postgres
+    volumes:
+      - ./reminders:/myapp
+    depends_on:
+      - web
+      - rabbitmq
+      - mongo
