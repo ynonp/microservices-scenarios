@@ -1,0 +1,25 @@
+{
+  "name": "reminders-rest-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
+    "agenda": "^4.1.2",
+    "agendash": "^2.1.1",
+    "amqplib": "^0.7.1",
+    "axios": "^0.21.1",
+    "graphql": "^15.5.0",
+    "graphql-request": "^3.4.0",
+    "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^10.0.0",
+    "koa-static": "^5.0.0"
+  }
+}
