@@ -74,9 +74,11 @@ Try to list as many advantages and disadvantages as you can find. Here are some 
 
 1. Change the code so actual email will be sent (using sendgrid)
 
-2. Allow a participant to define other communication methods and to select her preferred way.
+2. Change the Rails GraphQL API to allow a consumer to get all the meetings
 
-3. The Reminders service should use the preferred communication method (SMS, email, twitter, etc.) to send a reminder. 
+3. Allow a participant to define other communication methods and to select her preferred way.
+
+4. The Reminders service should use the preferred communication method (SMS, email, twitter, etc.) to send a reminder. 
 
 
 
