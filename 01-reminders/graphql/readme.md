@@ -224,7 +224,7 @@ Add the following code to the job description function (after the TODO comment):
         }
       }
     `
-    request('http://web:3000/graphql', query).then((data) => {
+    request('http://web:4400/graphql', query).then((data) => {
       console.log(data.meeting.participants);
     })
 ```
