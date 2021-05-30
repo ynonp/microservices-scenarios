@@ -24,7 +24,7 @@ services:
     #  - 5672:5672
 
   web:
-    build: ./mainapp
+    image: ynonp/ms-samedb-mainapp:latest
     command: ["/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
     volumes:
       - ./mainapp:/myapp
@@ -33,20 +33,20 @@ services:
       - MAINAPP_DB_USER=postgres
       - MAINAPP_DB_PASS=postgres
     ports:
-      - "3000:3000"
+      - "4400:3000"
     depends_on:
       - rabbitmq
 
 
   reminders:
-    build: ./reminders
-    command: ["/usr/bin/wait-for-it.sh", "mongo:27017", "--", "/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "nodemon", "main.js"]
+    image: ynonp/ms-samedb-reminders:latest
+    command: ["/usr/bin/wait-for-it.sh", "mongo:27017", "--", "/usr/bin/wait-for-it.sh", "rabbitmq:5672", "--", "nodemon", "src/main.js"]
     environment:
       - MAINAPP_DB_NAME=postgres
       - MAINAPP_DB_USER=postgres
       - MAINAPP_DB_PASS=postgres
     volumes:
-      - ./reminders:/myapp
+      - ./reminders:/myapp/src
     depends_on:
       - web
       - rabbitmq
