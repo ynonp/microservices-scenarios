@@ -134,10 +134,10 @@ end
 
 
 ## Connecting from Node.JS to Rails to get the data
-On the node.js side we can use axios to perform an HTTP call. The following code will perform an HTTP call to a host named web port 4400 asking for the details about a specific meeting:
+On the node.js side we can use axios to perform an HTTP call. The following code will perform an HTTP call to a host named web port 3000 asking for the details about a specific meeting:
 
 ```
-const res = await axios.get(`http://web:4400/meetings/${id}.json`);
+const res = await axios.get(`http://web:3000/meetings/${id}.json`);
 ```
 
 After this call we will have the JSON result in `res.data`. Use console.log to see it:
