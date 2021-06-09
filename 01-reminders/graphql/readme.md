@@ -7,8 +7,8 @@ The application manages meetings and contacts. We can create new contacts and sc
 Every time a meeting is about to start, A Reminders micro service should send a reminder to each participant
 reminding them to come to the meeting.
 
-In the directory `mainapp-rest-api` you'll find the code to the main app (in Rails).
-And in the directory `reminders-rest-api` you'll find the code for the reminders service.
+In the directory `mainap` you'll find the code to the main app (in Rails).
+And in the directory `reminders` you'll find the code for the reminders service.
 
 You can run both applications and their databases using the provider docker config by running: 
 
