@@ -39,17 +39,44 @@ Today we won't talk about authorization and permission, however be aware that AW
 
 ## Creating The Micro Services
 
+** BEFORE YOU BEGIN **
+
+AWS keeps items by name for a given region. In this tutorial I use generic names such as "Leads", but when you run the code you'll need to personalize the names by adding your room number.
+
+So when you see --table-name Leads; You actually need to write "--table-name Leads1" (or wahtever room number you're in)
+
+Otherwise names will collide with other participant's work.
+
+The keys that need to change are:
+
+1. table-name
+2. policy-name
+3. role-name
+4. policy-arn (to match the policy name you selected)
+5. function-name
+6. API Gateway name
+7. Log group name
+
+** NOW CONTINUE **
+
 Start by creating a dynamodb table
 
 ```
 $ aws dynamodb create-table --table-name Leads --key-schema AttributeName=id,KeyType=HASH --attribute-definitions AttributeName=id,AttributeType=S --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
 ```
 
+Then login to AWS management console to see the new table you just created:
+https://eu-west-3.console.aws.amazon.com/dynamodb/home?region=eu-west-3#tables:
+
+
 Create a lambda policy:
 
 ```
 $ aws iam create-policy --policy-name Leads --policy-document file://policy.json
 ```
+
+Then go to the Policy list page and use the filter to find your newly created policy:
+https://console.aws.amazon.com/iam/home?region=eu-west-3#/policies
 
 Create an execution role:
 
@@ -104,12 +131,18 @@ To see all the APIs you created.
 
 An API Gateway connects to a lambda function via an Integration. Replace the variable `API_ID` with the value you got back when creating the API. We need to create one:
 
+MAKE SURE TO CHANGE arn TO MATCH YOUR LAMBDA FUNCTION
+
 ```
 $ aws apigatewayv2 create-integration --api-id ${API_ID} --integration-type AWS_PROXY --integration-uri arn:aws:lambda:eu-west-3:219781153561:function:leads --payload-format-version "2.0"
 
 ```
 
 Write down the integration id.
+
+If you miss it you can always check on the management console:
+https://eu-west-3.console.aws.amazon.com/apigateway/main/develop/integrations/list?api=qzuz9mvb28&region=eu-west-3
+
 
 An API also has a "stage", that is the environment in which this API is active. Possible stage values are development, production, staging. We will use a stage called $default which is what you get when you don't specify a stage. We still need to create it though:
 
@@ -182,6 +215,13 @@ And this url shows ALL the leads in the DB:
 ```
 https://${API_ID}.execute-api.eu-west-3.amazonaws.com/items
 ```
+
+## Can You Find The Bug?
+If you go to check the contents of your dynamodb table you'll find that it's empty. Nevertheless the code seems to work, however something is fishy.
+
+Can you figure out what's going on and fix it?
+
+
 
 ## Discussion
 
